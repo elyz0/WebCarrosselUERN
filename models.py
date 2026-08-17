@@ -22,4 +22,13 @@ class Conteudo(Base):
     #nullable=False: esse campo é obrigatório, não pode ficar vazio.
     #nullable=True: esse campo é opcional.
     #unique=True no url_origem: garante que o banco recusa duplicar a mesma URL — é assim que evitamos reprocessar a mesma notícia duas vezes. 
-    #primary_key=True: o id é o identificador único de cada linha (o banco preenche sozinho, incrementando: 1, 2, 3...). 
+    #primary_key=True: o id é o identificador único de cada linha (o banco preenche sozinho, incrementando: 1, 2, 3...).  
+     
+class ConfigTV(Base):
+    __tablename__ = "config_tv"
+
+    id = Column(Integer, primary_key=True, index=True)
+    modo_atual = Column(String, nullable=False, default="geral")  # "geral" ou "edital"
+    atualizado_em = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow) # onupdate=datetime.utcnow faz o campo atualizado_em se atualizar sozinho toda vez que a linha for modificada (não só na criação) 
+
+    

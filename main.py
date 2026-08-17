@@ -36,6 +36,7 @@ def criar_conteudo(conteudo: schemas.ConteudoCreate, db: Session = Depends(get_d
     db.refresh(novo) # O db.refresh(novo) atualiza o objeto Python com o id que o banco acabou de gerar.
     return novo
 
+ 
 # Listar conteúdos (com filtro opcional por tipo)
 @app.get("/conteudos", response_model=list[schemas.ConteudoResponse])  
 #No GET filtramos por status "ativo" sempre (não queremos mostrar conteúdo expirado/oculto), e opcionalmente por tipo (pra separar notícia de edital).
@@ -48,6 +49,7 @@ def listar_conteudos(tipo: str | None = None, db: Session = Depends(get_db)):
 
     return query.all()  
 
+ 
 # Editar um conteúdo existente
 @app.put("/conteudos/{conteudo_id}", response_model=schemas.ConteudoResponse) #{conteudo_id} na URL: é um "path parameter". Ele captura o número da URL e entrega como argumento pra função.
 #No PUT
@@ -68,6 +70,7 @@ def atualizar_conteudo(conteudo_id: int, dados: schemas.ConteudoUpdate, db: Sess
 
     return conteudo
 
+ 
 # "Apagar" um conteúdo (oculta, nao remove do banco)
 @app.delete("/conteudos/{conteudo_id}") 
 #No DELETE 
@@ -81,5 +84,45 @@ def ocultar_conteudo(conteudo_id: int, db: Session = Depends(get_db)):
     conteudo.status = "oculto"
     db.commit() 
 
-    return {"status": "Conteudo ocultado com sucesso", "id": conteudo_id} 
+    return {"status": "Conteudo ocultado com sucesso", "id": conteudo_id}  
+
+
+# Consultar o modo atual da TV
+@app.get("/config", response_model=schemas.ConfigTVResponse)
+def obter_config(db: Session = Depends(get_db)): 
+
+    config = db.query(models.ConfigTV).first() 
+
+    if not config:
+        # Se ainda nao existe nenhuma config, cria uma com valor padrao "geral"
+        config = models.ConfigTV(modo_atual="geral")
+        db.add(config)
+        db.commit()
+        db.refresh(config) 
+
+    return config
+
+ 
+# Trocar o modo da TV (geral ou edital)
+@app.put("/config", response_model=schemas.ConfigTVResponse)
+def atualizar_config(dados: schemas.ConfigTVUpdate, db: Session = Depends(get_db)): 
+
+    if dados.modo_atual not in ["geral", "edital"]:
+        raise HTTPException(status_code=400, detail="modo_atual deve ser 'geral' ou 'edital'")
+
+    config = db.query(models.ConfigTV).first() 
+
+    if not config:
+        config = models.ConfigTV(modo_atual=dados.modo_atual)
+        db.add(config)
+    else:
+        config.modo_atual = dados.modo_atual
+
+    db.commit()
+    db.refresh(config) 
+
+    return config 
+
+
+
 

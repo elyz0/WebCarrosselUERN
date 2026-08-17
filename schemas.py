@@ -35,4 +35,16 @@ class ConteudoUpdate(BaseModel):
     resumo: Optional[str] = None
     imagem_url: Optional[str] = None
     status: Optional[str] = None
-    data_expiracao: Optional[datetime] = None
+    data_expiracao: Optional[datetime] = None 
+
+#
+class ConfigTVResponse(BaseModel):
+    modo_atual: str
+    atualizado_em: datetime
+
+    class Config:
+        from_attributes = True
+
+#
+class ConfigTVUpdate(BaseModel):
+    modo_atual: str  # "geral" ou "edital"
