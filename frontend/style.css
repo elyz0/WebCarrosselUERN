@@ -1,0 +1,239 @@
+/* ============================================
+   TOKENS — paleta restrita às cores oficiais do
+   MIV (Azul Azure + Ciano). Tudo mais é tom/tint
+   dessas duas, nunca cor nova.
+   ============================================ */
+:root {
+  --cor-fundo: #0e1024;
+  --cor-azure: #353c7c;
+  --cor-azure-claro: #4c54a0;
+  --cor-ciano: #009fdf;
+  --cor-ciano-escuro: #0077a8;
+  --cor-texto: #f4f6fb;
+  --cor-texto-fraco: rgba(244, 246, 251, 0.66);
+
+  --fonte-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --fonte-corpo: "Archivo", "Helvetica Neue", Arial, sans-serif;
+
+  /* medida-base do layout, tudo deriva daqui (mesma lógica do "u" do MIV) */
+  --u: min(1.6vw, 1.6vh);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(ellipse at 50% 30%, #171a3a 0%, var(--cor-fundo) 65%);
+  color: var(--cor-texto);
+  font-family: var(--fonte-corpo);
+  overflow: hidden; /* TV: nunca precisa rolar */
+}
+
+/* ============================================
+   BUG INSTITUCIONAL — logo + modo, fixo,
+   nunca troca com os itens do carrossel.
+   ============================================ */
+.bug-institucional {
+  position: fixed;
+  top: calc(var(--u) * 2);
+  left: calc(var(--u) * 2);
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 1.2);
+  z-index: 10;
+}
+
+.bug-institucional__logo {
+  font-family: var(--fonte-display);
+  font-weight: 900;
+  font-style: italic;
+  font-size: calc(var(--u) * 2.2);
+  letter-spacing: -0.02em;
+  color: var(--cor-texto);
+  /* área de proteção MIV: nenhum outro elemento decorativo
+     encosta neste bloco. O padding do .bug-institucional
+     já garante essa margem. */
+}
+
+.bug-institucional__divisor {
+  width: 1px;
+  height: calc(var(--u) * 2);
+  background: var(--cor-texto-fraco);
+}
+
+.bug-institucional__modo {
+  font-family: var(--fonte-display);
+  font-weight: 700;
+  font-size: calc(var(--u) * 1.1);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cor-ciano);
+}
+
+/* ============================================
+   PALCO — onde os 3 cards vivem (anterior,
+   ativo, próximo). O overflow hidden é o que
+   corta o "peek" dos vizinhos.
+   ============================================ */
+.palco-carrossel {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 1.5);
+  overflow: hidden;
+  padding: 0 calc(var(--u) * 4);
+}
+
+/* ============================================
+   CARD — estrutura base, tom vem do data-tom
+   ============================================ */
+.card-conteudo {
+  position: relative;
+  border-radius: calc(var(--u) * 1.8);
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: opacity 0.4s ease;
+}
+
+.card-conteudo[data-tom="azure"]        { background: linear-gradient(160deg, var(--cor-azure) 0%, #262b5c 100%); }
+.card-conteudo[data-tom="azure-claro"]  { background: linear-gradient(160deg, var(--cor-azure-claro) 0%, var(--cor-azure) 100%); }
+.card-conteudo[data-tom="ciano"]        { background: linear-gradient(160deg, var(--cor-ciano-escuro) 0%, var(--cor-azure) 100%); }
+
+/* Card ativo: o único legível, ocupa a maior parte do palco */
+.card-conteudo--ativo {
+  width: 68vw;
+  height: 78vh;
+  box-shadow:
+    0 calc(var(--u) * 2) calc(var(--u) * 6) rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(244, 246, 251, 0.06);
+  z-index: 2;
+}
+
+/* Cards peek: só uma fatia aparece, o resto é cortado pelo palco.
+   Usamos mask pra esmaecer a fatia em direção à borda da tela,
+   em vez de um corte seco — fica mais orgânico. */
+.card-conteudo--peek {
+  width: 12vw;
+  height: 62vh;
+  z-index: 1;
+}
+
+.card-conteudo--anterior {
+  mask-image: linear-gradient(to left, black 40%, transparent 100%);
+}
+
+.card-conteudo--proximo {
+  mask-image: linear-gradient(to right, black 40%, transparent 100%);
+}
+
+/* ============================================
+   TEXTO-FANTASMA — assinatura visual do card,
+   ecoa a categoria em tipografia gigante e
+   translúcida, atrás do conteúdo real.
+   ============================================ */
+.card-conteudo__fantasma {
+  position: absolute;
+  top: calc(var(--u) * -1);
+  left: calc(var(--u) * 1);
+  font-family: var(--fonte-display);
+  font-weight: 900;
+  font-style: italic;
+  font-size: calc(var(--u) * 9);
+  line-height: 0.85;
+  color: rgba(244, 246, 251, 0.07);
+  letter-spacing: -0.03em;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ============================================
+   MIOLO DO CARD ATIVO — título, resumo, rodapé
+   ============================================ */
+.card-conteudo__miolo {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: calc(var(--u) * 3.5);
+  gap: calc(var(--u) * 1.2);
+}
+
+.card-conteudo__categoria {
+  align-self: flex-start;
+  font-family: var(--fonte-display);
+  font-weight: 700;
+  font-size: calc(var(--u) * 1.1);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cor-fundo);
+  background: var(--cor-ciano);
+  padding: calc(var(--u) * 0.6) calc(var(--u) * 1.4);
+  border-radius: 999px;
+  margin-bottom: calc(var(--u) * 1);
+}
+
+.card-conteudo__titulo {
+  margin: 0;
+  font-family: var(--fonte-display);
+  font-weight: 900;
+  font-size: calc(var(--u) * 4.2);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  color: var(--cor-texto);
+  max-width: 90%;
+}
+
+.card-conteudo__resumo {
+  margin: 0;
+  font-family: var(--fonte-corpo);
+  font-weight: 500;
+  font-size: calc(var(--u) * 1.7);
+  line-height: 1.45;
+  color: var(--cor-texto-fraco);
+  max-width: 68%;
+}
+
+.card-conteudo__rodape {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 0.8);
+  margin-top: calc(var(--u) * 1);
+  font-family: var(--fonte-corpo);
+  font-weight: 600;
+  font-size: calc(var(--u) * 1.15);
+  color: var(--cor-texto-fraco);
+}
+
+.card-conteudo__ponto { opacity: 0.5; }
+
+/* ============================================
+   BARRA DE PROGRESSO — só sob a largura do
+   card ativo, comunica "quanto falta" sem
+   precisar de setas/pontos de navegação.
+   ============================================ */
+.barra-progresso {
+  position: fixed;
+  bottom: calc(var(--u) * 3);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 68vw; /* mesma largura do card ativo */
+  height: 4px;
+  background: rgba(244, 246, 251, 0.12);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.barra-progresso__preenchimento {
+  height: 100%;
+  width: 35%; /* valor fixo por enquanto — Passo 3 anima isso */
+  background: var(--cor-ciano);
+  border-radius: 999px;
+}

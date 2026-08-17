@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carrossel UERN — Notícias e Editais</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,500;0,600;0,700;0,900;1,700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  
+  <header class="bug-institucional">
+    <div class="bug-institucional__logo" aria-label="Logomarca UERN">UERN</div>
+    <span class="bug-institucional__divisor" aria-hidden="true"></span>
+    <span class="bug-institucional__modo">Notícias</span>
+  </header>
+
+  <!--
+    Palco do carrossel: contém 3 cards (anterior, atual, próximo).
+    Só o card "atual" fica legível; os outros dois são só a "espiada"
+    (peek) nas bordas, cortados pelo overflow do palco.
+  --> 
+    
+  <main class="palco-carrossel">
+
+    <!-- Card anterior (espiado, fica cortado à esquerda) -->
+    <article class="card-conteudo card-conteudo--peek card-conteudo--anterior" data-tom="ciano" aria-hidden="true">
+      <div class="card-conteudo__fantasma">EDITAL</div>
+    </article>
+
+    <!-- Card atual: o único com conteúdo legível -->
+    <article class="card-conteudo card-conteudo--ativo" data-tom="azure">
+      <div class="card-conteudo__fantasma">NOTÍCIA</div>
+
+      <div class="card-conteudo__miolo">
+        <span class="card-conteudo__categoria">Notícia</span>
+
+        <h1 class="card-conteudo__titulo">
+          UERN abre inscrições para bolsas de iniciação científica 2026
+        </h1>
+
+        <p class="card-conteudo__resumo">
+          A Pró-Reitoria de Pesquisa e Pós-Graduação divulgou o edital com
+          200 vagas de bolsas de iniciação científica para estudantes de
+          graduação de todos os campi. As inscrições vão até o dia 30 de
+          setembro pelo portal do estudante.
+        </p>
+
+        <footer class="card-conteudo__rodape">
+          <span class="card-conteudo__fonte">Portal UERN</span>
+          <span class="card-conteudo__ponto" aria-hidden="true">•</span>
+          <span class="card-conteudo__data">17 de agosto de 2026</span>
+        </footer>
+      </div>
+    </article>
+
+    <!-- Card próximo (espiado, fica cortado à direita) -->
+    <article class="card-conteudo card-conteudo--peek card-conteudo--proximo" data-tom="azure-claro" aria-hidden="true">
+      <div class="card-conteudo__fantasma">NOTÍCIA</div>
+    </article>
+
+  </main>
+
+  <!-- Barra de progresso: só sob a largura do card atual -->
+  <div class="barra-progresso" role="presentation">
+    <div class="barra-progresso__preenchimento"></div>
+  </div>
+
+  <!-- Passo 3 vai adicionar o script que troca os cards e reinicia a barra -->
+  <!-- <script src="carrossel.js"></script> -->
+</body>
+</html>
