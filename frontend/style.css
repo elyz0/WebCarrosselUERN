@@ -232,8 +232,11 @@ html, body {
 }
 
 .barra-progresso__preenchimento {
+  position: relative;
+  left: var(--barra-offset, 0%);
+  width: var(--barra-tamanho, 35%);
   height: 100%;
-  width: 35%; /* valor fixo por enquanto — Passo 3 anima isso */
   background: var(--cor-ciano);
   border-radius: 999px;
+  transition: left 0.35s ease, width 0.35s ease;
 }
