@@ -1,10 +1,21 @@
 from fastapi import FastAPI, Depends, HTTPException 
 from sqlalchemy.orm import Session
-from database import Base, engine, get_db
+from database import Base, engine, get_db 
+from fastapi.middleware.cors import CORSMiddleware
 import models 
-import schemas
+import schemas 
+
 
 Base.metadata.create_all(bind=engine) #essa linha é o que efetivamente cria a tabela no banco, se ela ainda não existir.
+ 
+# Libera o front-end (rodando em outra origem) para acessar a API.
+# Em producao, trocar allow_origins=["*"] pela URL real da TV/painel.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+) 
 
 app = FastAPI()
 

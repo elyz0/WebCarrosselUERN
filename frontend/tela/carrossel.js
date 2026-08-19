@@ -1,22 +1,7 @@
-// ============================================
-// PASSO 3: lógica do carrossel com dados fake.
-// No Passo 4 isso vira uma função que busca de
-// GET /conteudos em vez de ler esse array fixo.
-// ============================================
-
-// Quanto tempo (em ms) cada item fica na tela antes de trocar.
-// Vira segundos lá no CSS pra bater com a duração da animação da barra.
+const API_BASE = "http://localhost:8000";
 const DURACAO_SLIDE_MS = 10000;
-
-// Duração da transição de fade/slide do conteúdo (precisa bater com o
-// "transition" definido em .card-conteudo__miolo no CSS).
 const DURACAO_TRANSICAO_MS = 350;
 
-// --------------------------------------------
-// Dados fake — troque por dados reais no Passo 4.
-// "tom" escolhe a variação visual do card (azure /
-// azure-claro / ciano), só pra dar variedade ao ciclar.
-// --------------------------------------------
 const itensFake = [
   {
     tipo: "noticia",
@@ -47,30 +32,88 @@ const itensFake = [
   },
 ];
 
-// --------------------------------------------
-// Referências aos elementos do DOM (pegas uma vez só)
-// --------------------------------------------
 const elBugModo = document.querySelector(".bug-institucional__modo");
 const elCardAnterior = document.querySelector(".card-conteudo--anterior");
 const elCardAtivo = document.querySelector(".card-conteudo--ativo");
 const elCardProximo = document.querySelector(".card-conteudo--proximo");
 const elBarraPreenchimento = document.querySelector(".barra-progresso__preenchimento");
 
-// A barra de progresso lê essa variável CSS pra saber quanto tempo animar.
-elBarraPreenchimento.style.setProperty("--duracao-slide", `${DURACAO_SLIDE_MS / 1000}s`);
-
-let indiceAtual = 0;
-
-// Pega o item da lista com um deslocamento (-1 = anterior, +1 = próximo),
-// dando a volta no início/fim do array (por isso o "% total").
-function pegarItem(deslocamento) {
-  const total = itensFake.length;
-  const indice = (indiceAtual + deslocamento + total) % total;
-  return itensFake[indice];
+if (elBarraPreenchimento) {
+  elBarraPreenchimento.style.setProperty("--duracao-slide", `${DURACAO_SLIDE_MS / 1000}s`);
 }
 
-// Preenche o card ATIVO (o único com texto legível de verdade).
+let indiceAtual = 0;
+let itensAtivos = [...itensFake];
+let timerCarrossel = null;
+
+function formatarData(dataString) {
+  if (!dataString) return "Sem data";
+
+  const data = new Date(dataString);
+  if (Number.isNaN(data.getTime())) return dataString;
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(data);
+}
+
+function normalizarItem(item) {
+  const tipo = item.tipo === "edital" ? "edital" : "noticia";
+  const categoria = tipo === "edital" ? "Edital" : "Notícia";
+
+  return {
+    tipo,
+    categoria,
+    titulo: item.titulo || "Sem título",
+    resumo: item.resumo || item.texto_original || "Sem resumo disponível.",
+    fonte: item.origem === "manual" ? "Painel de suporte" : "Portal UERN",
+    data: formatarData(item.data_publicacao || item.data_expiracao || item.data),
+    tom: tipo === "edital" ? "ciano" : (Math.random() > 0.5 ? "azure" : "azure-claro"),
+  };
+}
+
+async function carregarModo() {
+  const resposta = await fetch(`${API_BASE}/config`);
+  if (!resposta.ok) {
+    throw new Error("Não foi possível carregar o modo da TV.");
+  }
+
+  const config = await resposta.json();
+  const modoAtual = config.modo_atual === "edital" ? "edital" : "geral";
+
+  if (elBugModo) {
+    elBugModo.textContent = modoAtual === "edital" ? "Editais" : "Notícias";
+  }
+
+  return modoAtual;
+}
+
+async function carregarConteudos() {
+  try {
+    const resposta = await fetch(`${API_BASE}/conteudos`);
+    if (!resposta.ok) throw new Error("Falha no backend");
+
+    const dados = await resposta.json();
+    const itens = Array.isArray(dados) ? dados.filter((item) => item.status !== "oculto") : [];
+    const normalizados = itens.map(normalizarItem);
+    return normalizados.length ? normalizados : [...itensFake];
+  } catch (erro) {
+    console.warn("Carrossel usando fallback:", erro);
+    return [...itensFake];
+  }
+}
+
+function pegarItem(deslocamento) {
+  const total = itensAtivos.length || 1;
+  const indice = (indiceAtual + deslocamento + total) % total;
+  return itensAtivos[indice];
+}
+
 function preencherCardAtivo(card, item) {
+  if (!card || !item) return;
+
   card.dataset.tom = item.tom;
   card.querySelector(".card-conteudo__fantasma").textContent = item.categoria.toUpperCase();
   card.querySelector(".card-conteudo__categoria").textContent = item.categoria;
@@ -80,19 +123,17 @@ function preencherCardAtivo(card, item) {
   card.querySelector(".card-conteudo__data").textContent = item.data;
 }
 
-// Preenche um card PEEK (anterior/próximo) — só precisa do tom e do
-// texto-fantasma, já que o resto fica cortado/ilegível mesmo.
 function preencherCardPeek(card, item) {
+  if (!card || !item) return;
+
   card.dataset.tom = item.tom;
   card.querySelector(".card-conteudo__fantasma").textContent = item.categoria.toUpperCase();
 }
 
-// Ajusta a largura e a posição da barra conforme o número de itens.
-// Cada passo ocupa uma fração do total: se há 3 itens, 33.33%; se há 5,
-// 20%; e a barra se desloca à direita em cada avanço, voltando ao início
-// quando o ciclo completa.
 function reiniciarBarraProgresso() {
-  const totalItens = Math.max(itensFake.length, 1);
+  if (!elBarraPreenchimento) return;
+
+  const totalItens = Math.max(itensAtivos.length, 1);
   const tamanhoPasso = 100 / totalItens;
   const deslocamento = indiceAtual * tamanhoPasso;
 
@@ -100,14 +141,14 @@ function reiniciarBarraProgresso() {
   elBarraPreenchimento.style.setProperty("--barra-offset", `${deslocamento}%`);
 }
 
-// Passo central: esconde o conteúdo atual (transição), troca os dados
-// por baixo, e revela de novo — dando a sensação de slide.
 function atualizarCarrossel() {
   const itemAnterior = pegarItem(-1);
   const itemAtivo = pegarItem(0);
   const itemProximo = pegarItem(1);
 
-  elBugModo.textContent = itemAtivo.tipo === "edital" ? "Editais" : "Notícias";
+  if (elBugModo) {
+    elBugModo.textContent = itemAtivo.tipo === "edital" ? "Editais" : "Notícias";
+  }
 
   elCardAnterior.classList.add("card-conteudo--trocando");
   elCardAtivo.classList.add("card-conteudo--trocando");
@@ -118,8 +159,6 @@ function atualizarCarrossel() {
     preencherCardAtivo(elCardAtivo, itemAtivo);
     preencherCardPeek(elCardProximo, itemProximo);
 
-    // Espera o próximo frame antes de remover a classe, senão o
-    // navegador às vezes "funde" as duas mudanças e a transição não roda.
     requestAnimationFrame(() => {
       elCardAnterior.classList.remove("card-conteudo--trocando");
       elCardAtivo.classList.remove("card-conteudo--trocando");
@@ -130,11 +169,46 @@ function atualizarCarrossel() {
   }, DURACAO_TRANSICAO_MS);
 }
 
-// Primeira renderização, assim que a página carrega.
-atualizarCarrossel();
+async function carregarDadosDoCarrossel() {
+  try {
+    const modoAtual = await carregarModo();
+    let itens = await carregarConteudos();
 
-// A cada DURACAO_SLIDE_MS, avança um item e atualiza a tela.
-window.setInterval(() => {
-  indiceAtual = (indiceAtual + 1) % itensFake.length;
-  atualizarCarrossel();
-}, DURACAO_SLIDE_MS);
+    if (modoAtual === "edital") {
+      itens = itens.filter((item) => item.tipo === "edital");
+    }
+
+    itensAtivos = itens.length > 0 ? itens : [...itensFake];
+
+    if (indiceAtual >= itensAtivos.length) {
+      indiceAtual = 0;
+    }
+
+    atualizarCarrossel();
+  } catch (erro) {
+    console.warn("Fallback do carrossel:", erro);
+    itensAtivos = [...itensFake];
+    atualizarCarrossel();
+  }
+}
+
+function iniciarCarrossel() {
+  carregarDadosDoCarrossel();
+
+  if (timerCarrossel) {
+    clearInterval(timerCarrossel);
+  }
+
+  timerCarrossel = window.setInterval(() => {
+    if (!itensAtivos.length) return;
+    indiceAtual = (indiceAtual + 1) % itensAtivos.length;
+    atualizarCarrossel();
+  }, DURACAO_SLIDE_MS);
+
+  window.setInterval(() => {
+    carregarDadosDoCarrossel();
+  }, 5000);
+}
+
+window.addEventListener("DOMContentLoaded", iniciarCarrossel);
+window.addEventListener("focus", iniciarCarrossel);

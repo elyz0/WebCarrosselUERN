@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel de Suporte — WebCarrossel UERN</title>
+
+  <!--
+    Passo 1: só estrutura, sem estilo real ainda (Passo 2).
+    Esse painel é usado de perto por uma pessoa (não visto de
+    longe como a TV), então a prioridade aqui é clareza de
+    formulário e feedback de ação, não impacto visual.
+  -->
+  <link rel="stylesheet" href="painel.css">
+</head>
+<body>
+
+  <!-- Cabeçalho simples: identifica o sistema, sem frescura -->
+  <header class="topo-painel">
+    <div class="topo-painel__marca">UERN <span>WebCarrossel</span></div>
+    <h1 class="topo-painel__titulo">Painel de Suporte</h1>
+  </header>
+
+  <main class="conteudo-painel">
+
+    <!--
+      Seção 1: modo de exibição da TV.
+      Reflete (e altera) o config_tv do backend.
+    -->
+    <section class="secao-painel" aria-labelledby="titulo-modo">
+      <h2 id="titulo-modo" class="secao-painel__titulo">Modo de exibição</h2>
+      <p class="secao-painel__descricao">
+        Define o que a TV está mostrando agora. "Geral" mistura
+        notícias e editais no mesmo carrossel; "Edital" fixa a TV
+        exibindo só os editais.
+      </p>
+
+      <!--
+        Fake por enquanto, sem lógica ainda.
+        Só 2 opções — bate com o schema real (ConfigTVUpdate.modo_atual
+        só aceita "geral" ou "edital", validado no backend).
+      -->
+      <div class="seletor-modo" role="radiogroup" aria-label="Modo de exibição da TV">
+        <button type="button" class="seletor-modo__opcao seletor-modo__opcao--ativa" data-modo="geral">
+          Geral
+        </button>
+        <button type="button" class="seletor-modo__opcao" data-modo="edital">
+          Edital
+        </button>
+      </div>
+
+      <p class="seletor-modo__status">
+        Modo atual: <strong>Geral</strong>
+      </p>
+    </section>
+
+    <!--
+      Seção 2: cadastrar conteúdo manualmente.
+      Fica separado do fluxo de RSS/scraping — é pra casos em
+      que alguém precisa colocar um aviso pontual na tela.
+    -->
+    <section class="secao-painel" aria-labelledby="titulo-novo">
+      <h2 id="titulo-novo" class="secao-painel__titulo">Adicionar conteúdo</h2>
+
+      <form class="formulario-conteudo">
+        <div class="campo">
+          <label for="campo-tipo">Tipo</label>
+          <select id="campo-tipo" name="tipo" required>
+            <option value="noticia">Notícia</option>
+            <option value="edital">Edital</option>
+          </select>
+        </div>
+
+        <div class="campo">
+          <label for="campo-titulo">Título</label>
+          <input type="text" id="campo-titulo" name="titulo" required maxlength="140" placeholder="Ex: UERN abre inscrições para...">
+        </div>
+
+        <!--
+          texto_original (não "resumo"): o resumo curto pra TV é gerado
+          pela IA depois — aqui é o texto completo/bruto do aviso.
+        -->
+        <div class="campo">
+          <label for="campo-texto">Texto original</label>
+          <textarea id="campo-texto" name="texto_original" rows="5" required placeholder="Texto completo do aviso/notícia. O resumo pra TV é gerado automaticamente a partir daqui."></textarea>
+        </div>
+
+        <div class="campo">
+          <label for="campo-imagem">URL da imagem (opcional)</label>
+          <input type="url" id="campo-imagem" name="imagem_url" placeholder="https://uern.br/imagens/...">
+        </div>
+
+        <!--
+          url_origem: opcional pro cadastro manual (nem todo aviso tem
+          link), mas TEM que ser único quando preenchido — o backend
+          usa isso pra não duplicar conteúdo vindo do scraper.
+        -->
+        <div class="campo">
+          <label for="campo-url-origem">Link de origem (opcional)</label>
+          <input type="url" id="campo-url-origem" name="url_origem" placeholder="https://uern.br/... (deixe em branco se for um aviso solto)">
+        </div>
+
+        <div class="campo">
+          <label for="campo-expiracao">Data de expiração (opcional)</label>
+          <input type="datetime-local" id="campo-expiracao" name="data_expiracao">
+          <span class="campo__ajuda">Usado principalmente em editais — depois dessa data, some da fila.</span>
+        </div>
+
+        <button type="submit" class="botao botao--primario">Adicionar à fila</button>
+      </form>
+    </section>
+
+    <!--
+      Seção 3: lista de conteúdos existentes.
+      Por enquanto uma linha de exemplo fixa, só pra validar o layout
+      da tabela/lista. Dados reais + interatividade vêm depois.
+    -->
+    <section class="secao-painel" aria-labelledby="titulo-lista">
+      <h2 id="titulo-lista" class="secao-painel__titulo">Conteúdos na fila</h2>
+
+      <table class="tabela-conteudos">
+        <thead>
+          <tr>
+            <th scope="col">Tipo</th>
+            <th scope="col">Título</th>
+            <th scope="col">Origem</th>
+            <th scope="col">Publicado em</th>
+            <th scope="col">Status</th>
+            <th scope="col"><span class="visualmente-oculto">Ações</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <!--
+            status aqui reflete o campo real do backend: "ativo",
+            "oculto" ou "expirado". Por enquanto só tratamos
+            ativo/oculto no botão de ação — "expirado" é automático
+            (via data_expiracao) e provavelmente não tem botão de ação.
+          -->
+          <tr>
+            <td><span class="etiqueta-tipo etiqueta-tipo--noticia">Notícia</span></td>
+            <td>UERN abre inscrições para bolsas de iniciação científica 2026</td>
+            <td><span class="etiqueta-origem etiqueta-origem--scraper">scraper</span></td>
+            <td>17/08/2026</td>
+            <td><span class="etiqueta-status etiqueta-status--ativo">Ativo</span></td>
+            <td>
+              <button type="button" class="botao botao--secundario botao--pequeno">Ocultar</button>
+            </td>
+          </tr>
+          <tr>
+            <td><span class="etiqueta-tipo etiqueta-tipo--edital">Edital</span></td>
+            <td>Edital nº 042/2026 — Seleção de monitoria para o semestre 2026.2</td>
+            <td><span class="etiqueta-origem etiqueta-origem--manual">manual</span></td>
+            <td>12/08/2026</td>
+            <td><span class="etiqueta-status etiqueta-status--oculto">Oculto</span></td>
+            <td>
+              <button type="button" class="botao botao--secundario botao--pequeno">Reexibir</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+  </main>
+
+  <!-- Próximos passos vão adicionar painel.js pra ligar tudo isso ao backend -->
+  <!-- <script src="painel.js"></script> -->
+</body>
+</html>

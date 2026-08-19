@@ -12,7 +12,7 @@ class Conteudo(Base):
     texto_original = Column(Text, nullable=False)
     resumo = Column(Text, nullable=True)            # preenchido depois, pela IA
     imagem_url = Column(String, nullable=True)
-    url_origem = Column(String, unique=True, nullable=False)  # evita duplicar
+    url_origem = Column(String, unique=True, nullable=True)  # antes: nullable=False  # evita duplicar
     origem = Column(String, nullable=False)          # "scraper" ou "manual"
     status = Column(String, default="ativo")         # "ativo", "expirado", "oculto"
     data_publicacao = Column(DateTime, default=datetime.utcnow)
