@@ -240,3 +240,35 @@ html, body {
   border-radius: 999px;
   transition: left 0.35s ease, width 0.35s ease;
 }
+
+/* Acesso administrativo discreto, sem disputar atenção com o carrossel. */
+.atalho-suporte {
+  position: fixed;
+  right: calc(var(--u) * 2);
+  bottom: calc(var(--u) * 2);
+  z-index: 10;
+  padding: calc(var(--u) * 0.8) calc(var(--u) * 1.1);
+  border: 1px solid rgba(244, 246, 251, 0.2);
+  border-radius: 999px;
+  color: var(--cor-texto-fraco);
+  font-family: var(--fonte-display);
+  font-size: calc(var(--u) * 0.95);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+  opacity: 0.55;
+  transition: opacity 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.atalho-suporte:hover,
+.atalho-suporte:focus-visible {
+  border-color: var(--cor-ciano);
+  color: var(--cor-texto);
+  opacity: 1;
+}
+
+.atalho-suporte:focus-visible {
+  outline: 2px solid var(--cor-ciano);
+  outline-offset: 3px;
+}
