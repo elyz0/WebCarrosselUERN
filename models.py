@@ -15,7 +15,7 @@ class Conteudo(Base):
     url_origem = Column(String, unique=True, nullable=True)  # antes: nullable=False  # evita duplicar
     origem = Column(String, nullable=False)          # "scraper" ou "manual"
     status = Column(String, default="ativo")         # "ativo", "expirado", "oculto"
-    data_publicacao = Column(DateTime, default=datetime.utcnow)
+    data_publicacao = Column(DateTime, default=datetime.utcnow) # essa é preenchida
     data_expiracao = Column(DateTime, nullable=True) # usado principalmente por editais  
 
     #Column(...): define um campo/coluna da tabela e seu tipo (texto, número, data...). 
