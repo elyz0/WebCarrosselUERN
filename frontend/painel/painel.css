@@ -63,6 +63,9 @@ html, body {
   overflow: hidden;
   background: var(--cor-azure);
   padding: calc(var(--u) * 4) calc(var(--u) * 5) calc(var(--u) * 3.5);
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 1.2);
 }
 
 .topo-painel::after {
@@ -79,27 +82,31 @@ html, body {
 
 .topo-painel__marca {
   position: relative;
+  z-index: 1;
   font-family: var(--fonte-display);
   font-weight: 900;
   font-style: italic;
-  font-size: calc(var(--u) * 2.25);
+  font-size: calc(var(--u) * 2.5);
   letter-spacing: -0.01em;
   color: #ffffff;
 }
 
-.topo-painel__marca span {
-  font-weight: 500;
-  font-style: normal;
-  opacity: 0.7;
-  margin-left: calc(var(--u) * 1);
+.topo-painel__divisor {
+  position: relative;
+  z-index: 1;
+  width: 1px;
+  height: calc(var(--u) * 2.5);
+  background: rgba(255, 255, 255, 0.65);
 }
 
-.topo-painel__titulo {
+.topo-painel__rotulo {
   position: relative;
-  margin: calc(var(--u) * 1) 0 0;
+  z-index: 1;
   font-family: var(--fonte-display);
   font-weight: 700;
-  font-size: calc(var(--u) * 3.5);
+  font-size: calc(var(--u) * 1.5);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: #ffffff;
 }
 
@@ -332,8 +339,6 @@ html, body {
    ============================================ */
 @media (max-width: 640px) {
   .conteudo-painel { padding: calc(var(--u) * 3) calc(var(--u) * 2) calc(var(--u) * 6); }
-  .topo-painel { padding: calc(var(--u) * 3) calc(var(--u) * 3) calc(var(--u) * 2.5); }
-  .topo-painel__titulo { font-size: calc(var(--u) * 2.75); }
 
   .tabela-conteudos, .tabela-conteudos thead, .tabela-conteudos tbody,
   .tabela-conteudos th, .tabela-conteudos td, .tabela-conteudos tr {
