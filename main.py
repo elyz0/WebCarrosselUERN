@@ -7,7 +7,8 @@ import schemas
 
 
 Base.metadata.create_all(bind=engine) #essa linha é o que efetivamente cria a tabela no banco, se ela ainda não existir.
- 
+
+app = FastAPI()
 # Libera o front-end (rodando em outra origem) para acessar a API.
 # Em producao, trocar allow_origins=["*"] pela URL real da TV/painel.
 app.add_middleware(
@@ -16,8 +17,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 ) 
-
-app = FastAPI()
 
 @app.get("/")
 def home():
@@ -51,10 +50,12 @@ def criar_conteudo(conteudo: schemas.ConteudoCreate, db: Session = Depends(get_d
 # Listar conteúdos (com filtro opcional por tipo)
 @app.get("/conteudos", response_model=list[schemas.ConteudoResponse])  
 #No GET filtramos por status "ativo" sempre (não queremos mostrar conteúdo expirado/oculto), e opcionalmente por tipo (pra separar notícia de edital).
-def listar_conteudos(tipo: str | None = None, db: Session = Depends(get_db)): 
+def listar_conteudos(tipo: str | None = None, status: str | None = "ativo", db: Session = Depends(get_db)): 
 
-    query = db.query(models.Conteudo).filter(models.Conteudo.status == "ativo") 
+    query = db.query(models.Conteudo) 
 
+    if status:
+        query = query.filter(models.Conteudo.status == status)
     if tipo:
         query = query.filter(models.Conteudo.tipo == tipo) 
 
