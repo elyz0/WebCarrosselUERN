@@ -4,7 +4,8 @@ from database import Base, engine, get_db
 from fastapi.middleware.cors import CORSMiddleware
 import models 
 import schemas 
-import scraper 
+import scraper  
+import resumir 
 
 
 Base.metadata.create_all(bind=engine) #essa linha é o que efetivamente cria a tabela no banco, se ela ainda não existir.
@@ -140,5 +141,11 @@ def atualizar_config(dados: schemas.ConfigTVUpdate, db: Session = Depends(get_db
 # Importa notícias/editais do RSS do portal (sem duplicar url_origem).
 @app.post("/scraper/sincronizar", response_model=schemas.ScraperSincronizarResponse)
 def sincronizar_portal(db: Session = Depends(get_db)):
-    return scraper.sincronizar(db)
+    return scraper.sincronizar(db) 
+
+
+# Gera o resumo (via IA) dos conteúdos que ainda não têm resumo
+@app.post("/scraper/resumir")
+def resumir_portal(db: Session = Depends(get_db)):
+    return resumir.resumir_pendentes(db)
 
