@@ -61,6 +61,18 @@
       </p>
     </section>
 
+    <section class="secao-painel" aria-labelledby="titulo-scraper">
+      <h2 id="titulo-scraper" class="secao-painel__titulo">Portal UERN</h2>
+      <p class="secao-painel__descricao">
+        Lê o RSS de notícias e de concursos/seleções. Itens que já existem
+        (mesmo link) são ignorados. O resumo automático vem no passo seguinte.
+      </p>
+      <button type="button" class="botao botao--secundario" id="botao-sincronizar">
+        Sincronizar agora
+      </button>
+      <p class="campo__ajuda status-sincronizar" id="status-sincronizar" role="status"></p>
+    </section>
+
     <!--
       Seção 2: cadastrar conteúdo manualmente.
       Fica separado do fluxo de RSS/scraping — é pra casos em

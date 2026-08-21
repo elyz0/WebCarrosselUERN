@@ -12,6 +12,8 @@ const elBotoesModo = document.querySelectorAll(".seletor-modo__opcao");
 const elStatusModoTexto = document.querySelector(".seletor-modo__status strong");
 const elFormulario = document.querySelector(".formulario-conteudo");
 const elTabelaCorpo = document.querySelector(".tabela-conteudos tbody");
+const elBotaoSincronizar = document.querySelector("#botao-sincronizar");
+const elStatusSincronizar = document.querySelector("#status-sincronizar");
 
 async function requisicaoApi(caminho, opcoes = {}) {
   const resposta = await fetch(`${API_BASE}${caminho}`, {
@@ -137,6 +139,34 @@ async function alternarStatus(item, botao) {
     botao.disabled = false;
   }
 }
+
+elBotaoSincronizar.addEventListener("click", async () => {
+  elBotaoSincronizar.disabled = true;
+  elStatusSincronizar.textContent = "Lendo o RSS do portal...";
+
+  try {
+    const resultado = await requisicaoApi("/scraper/sincronizar", { method: "POST" });
+    const falhas = (resultado.fontes || []).filter((fonte) => fonte.erro);
+    const vias = (resultado.fontes || [])
+      .filter((fonte) => fonte.via)
+      .map((fonte) => `${fonte.nome} via ${fonte.via}`)
+      .join("; ");
+
+    elStatusSincronizar.textContent = [
+      `${resultado.novos} novo(s)`,
+      `${resultado.ignorados} já existia(m)`,
+      vias,
+      falhas.length ? `falha: ${falhas.map((fonte) => fonte.nome).join(", ")}` : "",
+    ].filter(Boolean).join(" · ");
+
+    await carregarPainel();
+  } catch (erro) {
+    elStatusSincronizar.textContent = "";
+    mostrarErro(erro);
+  } finally {
+    elBotaoSincronizar.disabled = false;
+  }
+});
 
 elFormulario.addEventListener("submit", async (evento) => {
   evento.preventDefault();

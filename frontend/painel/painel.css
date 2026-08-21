@@ -243,6 +243,11 @@ html, body {
   color: var(--cor-texto-fraco);
 }
 
+.status-sincronizar {
+  margin: calc(var(--u) * 1.5) 0 0;
+  min-height: calc(var(--u) * 2);
+}
+
 /* ============================================
    BOTÕES
    ============================================ */

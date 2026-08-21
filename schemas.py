@@ -48,3 +48,18 @@ class ConfigTVResponse(BaseModel):
 #
 class ConfigTVUpdate(BaseModel):
     modo_atual: str  # "geral" ou "edital"
+
+
+class ScraperFonteResultado(BaseModel):
+    nome: str
+    url: str
+    via: Optional[str] = None  # "rss" ou "rest"
+    novos: int
+    ignorados: int
+    erro: Optional[str] = None
+
+
+class ScraperSincronizarResponse(BaseModel):
+    novos: int
+    ignorados: int
+    fontes: list[ScraperFonteResultado]
