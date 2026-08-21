@@ -33,6 +33,7 @@ function formatarData(dataString) {
 function normalizarItem(item) {
   const tipo = item.tipo === "edital" ? "edital" : "noticia";
   const categoria = tipo === "edital" ? "Edital" : "Notícia";
+  const tomNoticia = Number(item.id) % 2 === 0 ? "azure-claro" : "azure";
 
   return {
     tipo,
@@ -41,7 +42,7 @@ function normalizarItem(item) {
     resumo: item.resumo || item.texto_original || "Sem resumo disponível.",
     fonte: item.origem === "manual" ? "Painel de suporte" : "Portal UERN",
     data: formatarData(item.data_publicacao || item.data_expiracao || item.data),
-    tom: tipo === "edital" ? "ciano" : (Math.random() > 0.5 ? "azure" : "azure-claro"),
+    tom: tipo === "edital" ? "ciano" : tomNoticia,
   };
 }
 
