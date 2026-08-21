@@ -3,6 +3,7 @@ import os
 import time
 import urllib.error
 import urllib.request
+from datetime import datetime
 
 from sqlalchemy.orm import Session
 
@@ -24,18 +25,41 @@ PAUSA_ENTRE_ITENS_S = 4  # respeita o limite de 15 requisições/min do free tie
 
 PROMPT_BASE = (
     "Você resume textos institucionais de uma universidade pública brasileira "
-    "(UERN) para exibição em um carrossel/painel informativo.\n"
+    "(UERN) para exibição em um carrossel/painel informativo e extrai a "
+    "data final de vigência quando houver.\n"
     "Regras:\n"
     "- Escreva em português do Brasil, tom claro e direto.\n"
     "- Máximo de 3 frases ou 60 palavras.\n"
     "- Se for edital/concurso, priorize: o que é, prazo/data-limite e quem pode participar.\n"
     "- Se for notícia, priorize: o fato principal e por que importa.\n"
     "- Não invente datas, números ou informações que não estejam no texto.\n"
-    "- Não use markdown, emojis ou aspas. Devolva só o resumo, sem introduções como 'Aqui está'.\n\n"
+    "- Não use markdown, emojis ou aspas no resumo.\n"
+    "- Em data_expiracao, informe somente a data final explícita para inscrição, "
+    "submissão, vigência ou participação no edital. Não use data de publicação, "
+    "data de evento ou prazo intermediário.\n"
+    "- Converta data_expiracao para AAAA-MM-DD. Se não houver uma data final "
+    "inequívoca, use null. Para notícias, use sempre null.\n\n"
     "Tipo do conteúdo: {tipo}\n"
     "Título: {titulo}\n"
     "Texto original:\n{texto}"
 )
+
+SCHEMA_RESPOSTA = {
+    "type": "object",
+    "properties": {
+        "resumo": {
+            "type": "string",
+            "description": "Resumo pronto para exibição no carrossel.",
+        },
+        "data_expiracao": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Data final do edital em AAAA-MM-DD, ou null.",
+        },
+    },
+    "required": ["resumo", "data_expiracao"],
+    "additionalProperties": False,
+}
 
 
 class ErroResumo(Exception):
@@ -51,6 +75,8 @@ def _chamar_gemini(prompt: str) -> str:
         "generationConfig": {
             "temperature": 0.3,
             "maxOutputTokens": 200,
+            "responseMimeType": "application/json",
+            "responseSchema": SCHEMA_RESPOSTA,
         },
     }).encode("utf-8")
 
@@ -92,10 +118,27 @@ def _chamar_gemini(prompt: str) -> str:
     raise ErroResumo(ultimo_erro or "Falha desconhecida ao chamar a API do Gemini.")
 
 
-def resumir_texto(tipo: str, titulo: str, texto: str) -> str:
+def resumir_texto(tipo: str, titulo: str, texto: str) -> tuple[str, datetime | None]:
     texto_limitado = texto[:6000]  # margem de segurança para não estourar tokens à toa
     prompt = PROMPT_BASE.format(tipo=tipo, titulo=titulo, texto=texto_limitado)
-    return _chamar_gemini(prompt)
+    try:
+        resultado = json.loads(_chamar_gemini(prompt))
+    except json.JSONDecodeError as erro:
+        raise ErroResumo("A API não devolveu o JSON esperado.") from erro
+
+    resumo = str(resultado.get("resumo") or "").strip()
+    if not resumo:
+        raise ErroResumo("A API devolveu um resumo vazio.")
+
+    valor_data = resultado.get("data_expiracao")
+    if valor_data is None:
+        return resumo, None
+    if not isinstance(valor_data, str):
+        raise ErroResumo("A data de expiração devolvida pela API é inválida.")
+    try:
+        return resumo, datetime.strptime(valor_data, "%Y-%m-%d")
+    except ValueError as erro:
+        raise ErroResumo("A data de expiração devolvida pela API é inválida.") from erro
 
 
 def resumir_pendentes(db: Session, limite: int = 20) -> dict:
@@ -113,8 +156,10 @@ def resumir_pendentes(db: Session, limite: int = 20) -> dict:
 
     for item in pendentes:
         try:
-            resumo = resumir_texto(item.tipo, item.titulo, item.texto_original)
+            resumo, data_expiracao = resumir_texto(item.tipo, item.titulo, item.texto_original)
             item.resumo = resumo
+            if item.tipo == "edital" and item.data_expiracao is None:
+                item.data_expiracao = data_expiracao
             db.commit()
             totais["resumidos"] += 1
             totais["detalhes"].append({"id": item.id, "titulo": item.titulo, "ok": True})

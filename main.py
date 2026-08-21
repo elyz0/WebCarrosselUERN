@@ -1,4 +1,7 @@
+from datetime import datetime, timedelta, timezone
+
 from fastapi import FastAPI, Depends, HTTPException 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from database import Base, engine, get_db
 from fastapi.middleware.cors import CORSMiddleware
@@ -55,6 +58,24 @@ def criar_conteudo(conteudo: schemas.ConteudoCreate, db: Session = Depends(get_d
 def listar_conteudos(tipo: str | None = None, status: str | None = "ativo", db: Session = Depends(get_db)): 
 
     query = db.query(models.Conteudo) 
+
+    agora = datetime.now(timezone.utc).replace(tzinfo=None)
+    limite_noticias = agora - timedelta(days=scraper.DIAS_NOTICIAS)
+
+    # Notícias só aparecem por sete dias. Editais ficam visíveis até a data
+    # de expiração cadastrada; sem essa data, permanecem disponíveis.
+    query = query.filter(
+        or_(
+            models.Conteudo.tipo != "noticia",
+            models.Conteudo.data_publicacao >= limite_noticias,
+        )
+    ).filter(
+        or_(
+            models.Conteudo.tipo != "edital",
+            models.Conteudo.data_expiracao.is_(None),
+            models.Conteudo.data_expiracao >= agora,
+        )
+    )
 
     if status:
         query = query.filter(models.Conteudo.status == status)

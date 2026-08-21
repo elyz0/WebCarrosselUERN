@@ -1,6 +1,6 @@
 import json
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from html import unescape
 from html.parser import HTMLParser
@@ -16,6 +16,7 @@ import models
 USER_AGENT = "WebCarrossel-UERN/1.0 (carrossel institucional; +https://portal.uern.br)"
 TIMEOUT_RSS_S = 45
 TIMEOUT_REST_S = 25
+DIAS_NOTICIAS = 7
 
 # WordPress: /feed na categoria. O feed de /proeg/editais/ costuma falhar (500),
 # então editais entram pela categoria "Concursos e seleções" do portal.
@@ -226,6 +227,17 @@ def coletar_fonte(fonte):
     return _itens_do_rest(json_bytes, fonte["tipo"]), "rest"
 
 
+def manter_itens_validos(itens: list[dict]) -> list[dict]:
+    """Mantém notícias recentes; editais não expiram pela data de publicação."""
+    agora = datetime.now(timezone.utc).replace(tzinfo=None)
+    limite_noticias = agora - timedelta(days=DIAS_NOTICIAS)
+    return [
+        item
+        for item in itens
+        if item["tipo"] != "noticia" or item["data_publicacao"] >= limite_noticias
+    ]
+
+
 def _ja_existe(db: Session, url_origem: str) -> bool:
     return db.query(models.Conteudo.id).filter(models.Conteudo.url_origem == url_origem).first() is not None
 
@@ -269,6 +281,7 @@ def sincronizar(db: Session) -> dict:
         try:
             itens, via = coletar_fonte(fonte)
             resultado["via"] = via
+            itens = manter_itens_validos(itens)
             for item in itens:
                 if salvar_item(db, item) == "novo":
                     resultado["novos"] += 1
