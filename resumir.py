@@ -4,11 +4,13 @@ import time
 import urllib.error
 import urllib.request
 from datetime import datetime
+from datetime import timezone
 
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 
 import models
+from observabilidade import registrar_execucao
 
 load_dotenv()
 
@@ -69,7 +71,7 @@ class ErroResumo(Exception):
     pass
 
 
-def _chamar_gemini(prompt: str) -> str:
+def _chamar_gemini(prompt: str) -> tuple[str, dict]:
     if not GEMINI_API_KEY:
         raise ErroResumo("GEMINI_API_KEY não configurada no ambiente.")
 
@@ -104,7 +106,17 @@ def _chamar_gemini(prompt: str) -> str:
             texto = "".join(p.get("text", "") for p in partes).strip()
             if not texto:
                 raise ErroResumo("Resposta da API veio vazia.")
-            return texto
+            uso = dados.get("usageMetadata") or {}
+            entrada = uso.get("promptTokenCount", 0) or 0
+            saida = uso.get("candidatesTokenCount", 0) or 0
+            pensamento = uso.get("thoughtsTokenCount", 0) or 0
+            total = uso.get("totalTokenCount", entrada + saida + pensamento) or 0
+            return texto, {
+                "entrada": entrada,
+                "saida": saida,
+                "pensamento": pensamento,
+                "total": total,
+            }
         except urllib.error.HTTPError as erro:
             corpo_erro = erro.read().decode("utf-8", errors="ignore")
             ultimo_erro = f"HTTP {erro.code}: {corpo_erro[:2000]}"
@@ -124,9 +136,14 @@ def _chamar_gemini(prompt: str) -> str:
 
 
 def resumir_texto(tipo: str, titulo: str, texto: str) -> tuple[str, datetime | None]:
+    resumo, data_expiracao, _ = _resumir_texto_com_uso(tipo, titulo, texto)
+    return resumo, data_expiracao
+
+
+def _resumir_texto_com_uso(tipo: str, titulo: str, texto: str) -> tuple[str, datetime | None, dict]:
     texto_limitado = texto[:6000]  # margem de segurança para não estourar tokens à toa
     prompt = PROMPT_BASE.format(tipo=tipo, titulo=titulo, texto=texto_limitado)
-    resposta_bruta = _chamar_gemini(prompt)
+    resposta_bruta, tokens = _chamar_gemini(prompt)
     print("DEBUG resposta bruta:", repr(resposta_bruta))
     try:
         resultado = json.loads(resposta_bruta)
@@ -139,17 +156,18 @@ def resumir_texto(tipo: str, titulo: str, texto: str) -> tuple[str, datetime | N
 
     valor_data = resultado.get("data_expiracao")
     if valor_data is None:
-        return resumo, None
+        return resumo, None, tokens
     if not isinstance(valor_data, str):
         raise ErroResumo("A data de expiração devolvida pela API é inválida.")
     try:
-        return resumo, datetime.strptime(valor_data, "%Y-%m-%d")
+        return resumo, datetime.strptime(valor_data, "%Y-%m-%d"), tokens
     except ValueError as erro:
         raise ErroResumo("A data de expiração devolvida pela API é inválida.") from erro
 
 
 def resumir_pendentes(db: Session, limite: int = 20) -> dict:
     """Busca itens sem resumo no banco, gera o resumo via Gemini e salva."""
+    inicio = datetime.now(timezone.utc).astimezone()
     pendentes = (
         db.query(models.Conteudo)
         .filter(models.Conteudo.resumo.is_(None))
@@ -159,11 +177,21 @@ def resumir_pendentes(db: Session, limite: int = 20) -> dict:
         .all()
     )
 
-    totais = {"resumidos": 0, "falhas": 0, "detalhes": []}
+    totais = {
+        "pendentes": len(pendentes),
+        "resumidos": 0,
+        "falhas": 0,
+        "detalhes": [],
+        "tokens": {"entrada": 0, "saida": 0, "pensamento": 0, "total": 0},
+    }
 
     for item in pendentes:
         try:
-            resumo, data_expiracao = resumir_texto(item.tipo, item.titulo, item.texto_original)
+            resumo, data_expiracao, tokens = _resumir_texto_com_uso(
+                item.tipo, item.titulo, item.texto_original
+            )
+            for nome, valor in tokens.items():
+                totais["tokens"][nome] += valor
             item.resumo = resumo
             if item.tipo == "edital" and item.data_expiracao is None:
                 item.data_expiracao = data_expiracao
@@ -177,6 +205,7 @@ def resumir_pendentes(db: Session, limite: int = 20) -> dict:
 
         time.sleep(PAUSA_ENTRE_ITENS_S)
 
+    registrar_execucao("resumir", inicio, totais, "Itens com falha" if totais["falhas"] else None)
     return totais
 
 

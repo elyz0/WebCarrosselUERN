@@ -12,6 +12,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 import models
+from observabilidade import registrar_execucao
 
 USER_AGENT = "WebCarrossel-UERN/1.0 (carrossel institucional; +https://portal.uern.br)"
 TIMEOUT_RSS_S = 45
@@ -267,6 +268,7 @@ def salvar_item(db: Session, item: dict) -> str:
 
 
 def sincronizar(db: Session) -> dict:
+    inicio = datetime.now(timezone.utc).astimezone()
     totais = {"novos": 0, "ignorados": 0, "fontes": []}
 
     for fonte in FONTES:
@@ -295,4 +297,6 @@ def sincronizar(db: Session) -> dict:
         totais["ignorados"] += resultado["ignorados"]
         totais["fontes"].append(resultado)
 
+    houve_erro = any(fonte["erro"] for fonte in totais["fontes"])
+    registrar_execucao("scraper", inicio, totais, "Uma ou mais fontes falharam" if houve_erro else None)
     return totais

@@ -9,6 +9,7 @@ import models
 import schemas 
 import scraper  
 import resumir 
+from observabilidade import resumo_do_dia
 
 
 Base.metadata.create_all(bind=engine) #essa linha é o que efetivamente cria a tabela no banco, se ela ainda não existir.
@@ -166,4 +167,10 @@ def sincronizar_portal(db: Session = Depends(get_db)):
 def resumir_portal(limite: int = 20, db: Session = Depends(get_db)):
     limite = max(1, min(limite, 20))
     return resumir.resumir_pendentes(db, limite=limite)
+
+
+# Mostra se as duas rodadas diárias foram concluídas e o consumo do Gemini.
+@app.get("/scraper/status")
+def status_scraper(data: str | None = None):
+    return resumo_do_dia(data)
 

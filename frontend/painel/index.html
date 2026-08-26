@@ -73,6 +73,34 @@
       <p class="campo__ajuda status-sincronizar" id="status-sincronizar" role="status"></p>
     </section>
 
+    <section class="secao-painel secao-monitoramento" aria-labelledby="titulo-monitoramento">
+      <div class="cabecalho-monitoramento">
+        <div>
+          <h2 id="titulo-monitoramento" class="secao-painel__titulo">Saúde da automação</h2>
+          <p class="secao-painel__descricao">Acompanhe as duas rodadas diárias do portal e o consumo da IA.</p>
+        </div>
+        <button type="button" class="botao botao--secundario botao--pequeno" id="botao-atualizar-status">Atualizar</button>
+      </div>
+      <p class="monitoramento-data" id="monitoramento-data">Consultando o dia...</p>
+      <div class="grade-monitoramento" aria-live="polite">
+        <article class="cartao-rotina" id="cartao-scraper">
+          <div class="cartao-rotina__cabecalho"><div><span class="cartao-rotina__sobretitulo">Coleta</span><h3>Scraper do portal</h3></div><span class="indicador-rotina" aria-hidden="true"></span></div>
+          <div class="cartao-rotina__numero"><strong data-campo="concluidas">-</strong><span>/ 2 rodadas</span></div>
+          <div class="barra-rotina"><span data-campo="barra"></span></div>
+          <dl class="metricas-rotina"><div><dt>Faltantes</dt><dd data-campo="faltantes">-</dd></div><div><dt>Falhas</dt><dd data-campo="falhas">-</dd></div><div><dt>Novos itens</dt><dd data-campo="novos">-</dd></div></dl>
+          <p class="ultima-rotina" data-campo="ultima">Nenhuma execução registrada.</p>
+        </article>
+        <article class="cartao-rotina" id="cartao-resumir">
+          <div class="cartao-rotina__cabecalho"><div><span class="cartao-rotina__sobretitulo">Inteligência</span><h3>Resumos com IA</h3></div><span class="indicador-rotina" aria-hidden="true"></span></div>
+          <div class="cartao-rotina__numero"><strong data-campo="concluidas">-</strong><span>/ 2 rodadas</span></div>
+          <div class="barra-rotina"><span data-campo="barra"></span></div>
+          <dl class="metricas-rotina"><div><dt>Faltantes</dt><dd data-campo="faltantes">-</dd></div><div><dt>Falhas</dt><dd data-campo="falhas">-</dd></div><div><dt>Tokens</dt><dd data-campo="tokens">-</dd></div></dl>
+          <p class="ultima-rotina" data-campo="ultima">Nenhuma execução registrada.</p>
+        </article>
+      </div>
+      <p class="status-monitoramento" id="status-monitoramento" role="status"></p>
+    </section>
+
     <!--
       Seção 2: cadastrar conteúdo manualmente.
       Fica separado do fluxo de RSS/scraping — é pra casos em

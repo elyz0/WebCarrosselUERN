@@ -248,6 +248,33 @@ html, body {
   min-height: calc(var(--u) * 2);
 }
 
+.secao-monitoramento { border-top: 4px solid var(--cor-ciano); }
+.cabecalho-monitoramento { display: flex; align-items: flex-start; justify-content: space-between; gap: calc(var(--u) * 2); }
+.cabecalho-monitoramento .secao-painel__descricao { margin-bottom: 0; }
+.monitoramento-data, .status-monitoramento { margin: 0; color: var(--cor-texto-fraco); font-size: calc(var(--u) * 1.45); }
+.monitoramento-data { margin-top: calc(var(--u) * 0.5); }
+.status-monitoramento { min-height: calc(var(--u) * 2); margin-top: calc(var(--u) * 2); }
+
+.grade-monitoramento { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(var(--u) * 2); margin-top: calc(var(--u) * 2.5); }
+.cartao-rotina { border: 1px solid var(--cor-borda); border-radius: 8px; padding: calc(var(--u) * 2.5); background: var(--cor-fundo); }
+.cartao-rotina--ok { border-color: #55ad8d; }
+.cartao-rotina--alerta { border-color: #e3a64d; }
+.cartao-rotina__cabecalho { display: flex; justify-content: space-between; align-items: flex-start; }
+.cartao-rotina__sobretitulo { color: var(--cor-ciano); font-size: calc(var(--u) * 1.2); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.cartao-rotina h3 { margin: calc(var(--u) * 0.5) 0 0; font-size: calc(var(--u) * 2); color: var(--cor-azure); }
+.indicador-rotina { width: 12px; height: 12px; border-radius: 50%; background: #e3a64d; }
+.cartao-rotina--ok .indicador-rotina { background: #55ad8d; }
+.cartao-rotina__numero { display: flex; align-items: baseline; gap: calc(var(--u) * 0.75); margin-top: calc(var(--u) * 3); }
+.cartao-rotina__numero strong { font-size: calc(var(--u) * 4.5); line-height: 1; color: var(--cor-texto); }
+.cartao-rotina__numero span { color: var(--cor-texto-fraco); font-size: calc(var(--u) * 1.5); }
+.barra-rotina { height: 6px; margin-top: calc(var(--u) * 1.5); overflow: hidden; background: var(--cor-borda); border-radius: 999px; }
+.barra-rotina span { display: block; height: 100%; width: 0; background: var(--cor-ciano); border-radius: inherit; transition: width 0.35s ease; }
+.metricas-rotina { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(var(--u) * 1); margin: calc(var(--u) * 2.5) 0 0; }
+.metricas-rotina div { min-width: 0; }
+.metricas-rotina dt { color: var(--cor-texto-fraco); font-size: calc(var(--u) * 1.25); }
+.metricas-rotina dd { margin: calc(var(--u) * 0.5) 0 0; color: var(--cor-texto); font-weight: 700; font-size: calc(var(--u) * 1.55); overflow-wrap: anywhere; }
+.ultima-rotina { min-height: calc(var(--u) * 2); margin: calc(var(--u) * 2.5) 0 0; color: var(--cor-texto-fraco); font-size: calc(var(--u) * 1.25); }
+
 /* ============================================
    BOTÕES
    ============================================ */
@@ -352,6 +379,9 @@ html, body {
    ============================================ */
 @media (max-width: 640px) {
   .conteudo-painel { padding: calc(var(--u) * 3) calc(var(--u) * 2) calc(var(--u) * 6); }
+
+  .cabecalho-monitoramento { flex-direction: column; }
+  .grade-monitoramento { grid-template-columns: 1fr; }
 
   .tabela-conteudos, .tabela-conteudos thead, .tabela-conteudos tbody,
   .tabela-conteudos th, .tabela-conteudos td, .tabela-conteudos tr {

@@ -14,6 +14,9 @@ const elFormulario = document.querySelector(".formulario-conteudo");
 const elTabelaCorpo = document.querySelector(".tabela-conteudos tbody");
 const elBotaoSincronizar = document.querySelector("#botao-sincronizar");
 const elStatusSincronizar = document.querySelector("#status-sincronizar");
+const elBotaoAtualizarStatus = document.querySelector("#botao-atualizar-status");
+const elDataMonitoramento = document.querySelector("#monitoramento-data");
+const elStatusMonitoramento = document.querySelector("#status-monitoramento");
 
 async function requisicaoApi(caminho, opcoes = {}) {
   const resposta = await fetch(`${API_BASE}${caminho}`, {
@@ -72,6 +75,58 @@ elBotoesModo.forEach((botao) => {
 function formatarData(data) {
   const dataFormatada = new Date(data);
   return Number.isNaN(dataFormatada.getTime()) ? "-" : dataFormatada.toLocaleDateString("pt-BR");
+}
+
+function formatarHora(data) {
+  const dataFormatada = new Date(data);
+  return Number.isNaN(dataFormatada.getTime())
+    ? "horário indisponível"
+    : dataFormatada.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatarNumero(numero) {
+  return Number(numero || 0).toLocaleString("pt-BR");
+}
+
+function renderizarRotina(tipo, dados, execucoes) {
+  const cartao = document.querySelector(`#cartao-${tipo}`);
+  cartao.querySelector('[data-campo="concluidas"]').textContent = dados.concluidas;
+  cartao.querySelector('[data-campo="faltantes"]').textContent = dados.faltantes;
+  cartao.querySelector('[data-campo="falhas"]').textContent = dados.falhas;
+  cartao.querySelector('[data-campo="barra"]').style.width = `${Math.min(100, dados.concluidas / 2 * 100)}%`;
+  cartao.classList.toggle("cartao-rotina--ok", dados.concluidas >= 2 && dados.falhas === 0);
+  cartao.classList.toggle("cartao-rotina--alerta", dados.falhas > 0 || dados.faltantes > 0);
+
+  const campoResultado = cartao.querySelector('[data-campo="tokens"], [data-campo="novos"]');
+  campoResultado.textContent = dados.tokens
+    ? `Entrada ${formatarNumero(dados.tokens.entrada)} · saída ${formatarNumero(dados.tokens.saida)} · total ${formatarNumero(dados.tokens.total)}`
+    : `${formatarNumero(execucoes.reduce((total, execucao) => total + (execucao.resultado?.novos || 0), 0))} item(ns) novo(s)`;
+
+  const ultima = execucoes[execucoes.length - 1];
+  cartao.querySelector('[data-campo="ultima"]').textContent = ultima
+    ? `Última rodada às ${formatarHora(ultima.fim)} · ${ultima.status === "ok" ? "concluída" : "com falha"}`
+    : "Nenhuma execução registrada.";
+}
+
+async function carregarStatusAutomacao() {
+  elBotaoAtualizarStatus.disabled = true;
+  elStatusMonitoramento.textContent = "Atualizando...";
+  try {
+    const status = await requisicaoApi("/scraper/status");
+    elDataMonitoramento.textContent = `Situação em ${formatarData(`${status.data}T12:00:00`)}`;
+    const execucoesPorTipo = { scraper: [], resumir: [] };
+    (status.ultimas_execucoes || []).forEach((execucao) => {
+      if (execucoesPorTipo[execucao.tipo]) execucoesPorTipo[execucao.tipo].push(execucao);
+    });
+    renderizarRotina("scraper", status.rotinas.scraper, execucoesPorTipo.scraper);
+    renderizarRotina("resumir", status.rotinas.resumir, execucoesPorTipo.resumir);
+    elStatusMonitoramento.textContent = "Atualizado agora.";
+  } catch (erro) {
+    elStatusMonitoramento.textContent = "Não foi possível carregar o monitoramento.";
+    console.error(erro);
+  } finally {
+    elBotaoAtualizarStatus.disabled = false;
+  }
 }
 
 function criarLinha(item) {
@@ -211,10 +266,13 @@ async function carregarPainel() {
     selecionarModo(config.modo_atual);
     itens = conteudos;
     renderizarTabela();
+    await carregarStatusAutomacao();
   } catch (erro) {
     mostrarErro(erro);
   }
 }
 
 carregarPainel();
+
+elBotaoAtualizarStatus.addEventListener("click", carregarStatusAutomacao);
 
