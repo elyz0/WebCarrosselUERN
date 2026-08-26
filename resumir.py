@@ -6,14 +6,17 @@ import urllib.request
 from datetime import datetime
 
 from sqlalchemy.orm import Session
+from dotenv import load_dotenv
 
 import models
+
+load_dotenv()
 
 # Chave lida do ambiente. Nunca deixe a chave escrita no código.
 # No Linux/Mac:  export GEMINI_API_KEY="sua_chave_aqui"
 # Pegue a chave em: https://aistudio.google.com/apikey
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-GEMINI_MODEL = "gemini-2.5-flash"  # bom equilíbrio entre custo zero e qualidade
+GEMINI_API_KEY = "".join(os.environ.get("GEMINI_API_KEY", "").split())
+GEMINI_MODEL = "gemini-3.5-flash-lite"
 GEMINI_URL = (
     f"https://generativelanguage.googleapis.com/v1beta/models/"
     f"{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
@@ -45,20 +48,20 @@ PROMPT_BASE = (
 )
 
 SCHEMA_RESPOSTA = {
-    "type": "object",
+    "type": "OBJECT",
     "properties": {
         "resumo": {
-            "type": "string",
+            "type": "STRING",
             "description": "Resumo pronto para exibição no carrossel.",
         },
         "data_expiracao": {
-            "type": ["string", "null"],
+            "type": "STRING",
+            "nullable": True,
             "format": "date",
             "description": "Data final do edital em AAAA-MM-DD, ou null.",
         },
     },
     "required": ["resumo", "data_expiracao"],
-    "additionalProperties": False,
 }
 
 
@@ -73,10 +76,12 @@ def _chamar_gemini(prompt: str) -> str:
     corpo = json.dumps({
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {
-            "temperature": 0.3,
-            "maxOutputTokens": 200,
+            "maxOutputTokens": 1024,
             "responseMimeType": "application/json",
             "responseSchema": SCHEMA_RESPOSTA,
+            "thinkingConfig": {
+                "thinkingLevel": "minimal",
+            },
         },
     }).encode("utf-8")
 
@@ -102,11 +107,11 @@ def _chamar_gemini(prompt: str) -> str:
             return texto
         except urllib.error.HTTPError as erro:
             corpo_erro = erro.read().decode("utf-8", errors="ignore")
-            ultimo_erro = f"HTTP {erro.code}: {corpo_erro[:300]}"
+            ultimo_erro = f"HTTP {erro.code}: {corpo_erro[:2000]}"
             if erro.code == 429:
-                # limite de requisições por minuto/dia atingido: espera mais e tenta de novo
-                time.sleep(15 * tentativa)
-                continue
+                # A API informa a cota no corpo da resposta. Não repetir um lote
+                # inteiro quando a conta está sem cota diária/plano configurado.
+                break
             if erro.code >= 500:
                 time.sleep(3 * tentativa)
                 continue
@@ -121,8 +126,10 @@ def _chamar_gemini(prompt: str) -> str:
 def resumir_texto(tipo: str, titulo: str, texto: str) -> tuple[str, datetime | None]:
     texto_limitado = texto[:6000]  # margem de segurança para não estourar tokens à toa
     prompt = PROMPT_BASE.format(tipo=tipo, titulo=titulo, texto=texto_limitado)
+    resposta_bruta = _chamar_gemini(prompt)
+    print("DEBUG resposta bruta:", repr(resposta_bruta))
     try:
-        resultado = json.loads(_chamar_gemini(prompt))
+        resultado = json.loads(resposta_bruta)
     except json.JSONDecodeError as erro:
         raise ErroResumo("A API não devolveu o JSON esperado.") from erro
 

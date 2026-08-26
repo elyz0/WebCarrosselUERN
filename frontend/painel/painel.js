@@ -146,7 +146,9 @@ elBotaoSincronizar.addEventListener("click", async () => {
 
   try {
     const resultado = await requisicaoApi("/scraper/sincronizar", { method: "POST" });
+    const resultadoResumo = await requisicaoApi("/scraper/resumir?limite=20", { method: "POST" });
     const falhas = (resultado.fontes || []).filter((fonte) => fonte.erro);
+    const falhaResumo = (resultadoResumo.detalhes || []).find((detalhe) => !detalhe.ok);
     const vias = (resultado.fontes || [])
       .filter((fonte) => fonte.via)
       .map((fonte) => `${fonte.nome} via ${fonte.via}`)
@@ -155,6 +157,9 @@ elBotaoSincronizar.addEventListener("click", async () => {
     elStatusSincronizar.textContent = [
       `${resultado.novos} novo(s)`,
       `${resultado.ignorados} já existia(m)`,
+      `${resultadoResumo.resumidos} resumo(s) gerado(s)`,
+      resultadoResumo.falhas ? `${resultadoResumo.falhas} falha(s) no resumo` : "",
+      falhaResumo?.erro ? `erro IA: ${falhaResumo.erro}` : "",
       vias,
       falhas.length ? `falha: ${falhas.map((fonte) => fonte.nome).join(", ")}` : "",
     ].filter(Boolean).join(" · ");

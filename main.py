@@ -62,13 +62,9 @@ def listar_conteudos(tipo: str | None = None, status: str | None = "ativo", db: 
     agora = datetime.now(timezone.utc).replace(tzinfo=None)
     limite_noticias = agora - timedelta(days=scraper.DIAS_NOTICIAS)
 
-    # Notícias só aparecem por sete dias. Editais ficam visíveis até a data
-    # de expiração cadastrada; sem essa data, permanecem disponíveis.
+    # O carrossel só exibe conteúdos publicados nos últimos sete dias.
     query = query.filter(
-        or_(
-            models.Conteudo.tipo != "noticia",
-            models.Conteudo.data_publicacao >= limite_noticias,
-        )
+        models.Conteudo.data_publicacao >= limite_noticias
     ).filter(
         or_(
             models.Conteudo.tipo != "edital",
@@ -167,6 +163,7 @@ def sincronizar_portal(db: Session = Depends(get_db)):
 
 # Gera o resumo (via IA) dos conteúdos que ainda não têm resumo
 @app.post("/scraper/resumir")
-def resumir_portal(db: Session = Depends(get_db)):
-    return resumir.resumir_pendentes(db)
+def resumir_portal(limite: int = 20, db: Session = Depends(get_db)):
+    limite = max(1, min(limite, 20))
+    return resumir.resumir_pendentes(db, limite=limite)
 
