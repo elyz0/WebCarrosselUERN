@@ -20,7 +20,8 @@
   --fonte-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --fonte-corpo: "Archivo", "Helvetica Neue", Arial, sans-serif;
 
-  --u: 8px; /* unidade-base de espaçamento, tudo em múltiplos disso */
+  --u: clamp(7px, 0.75vw + 0.3vh, 18px);
+  --painel-max-width: min(1200px, calc(100vw - 32px));
 }
 
 * { box-sizing: border-box; }
@@ -62,14 +63,14 @@ html, body {
   position: relative;
   overflow: hidden;
   background: var(--cor-azure);
-  height: calc(var(--cabecalho-u) * 8);
-  --cabecalho-u: min(1.6vw, 1.6vh);
+  height: clamp(56px, 7vh, 110px);
+  --cabecalho-u: clamp(9px, 0.8vw + 0.6vh, 18px);
 }
 
 .topo-painel__conteudo {
   position: absolute;
-  top: calc(var(--cabecalho-u) * 2);
-  left: calc(var(--cabecalho-u) * 2);
+  top: clamp(10px, 1.5vh, 24px);
+  left: clamp(12px, 1.5vw, 26px);
   display: flex;
   align-items: center;
   gap: calc(var(--cabecalho-u) * 1.2);
@@ -122,9 +123,9 @@ html, body {
    LAYOUT GERAL
    ============================================ */
 .conteudo-painel {
-  max-width: 920px;
+  max-width: var(--painel-max-width);
   margin: 0 auto;
-  padding: calc(var(--u) * 4) calc(var(--u) * 3) calc(var(--u) * 8);
+  padding: clamp(20px, 2vw, 48px) clamp(16px, 2vw, 30px) clamp(40px, 4vw, 72px);
   display: flex;
   flex-direction: column;
   gap: calc(var(--u) * 3);
@@ -377,11 +378,34 @@ html, body {
    RESPONSIVO — o painel pode ser aberto num
    notebook ou até celular, diferente da TV.
    ============================================ */
-@media (max-width: 640px) {
-  .conteudo-painel { padding: calc(var(--u) * 3) calc(var(--u) * 2) calc(var(--u) * 6); }
+@media (min-width: 1400px) {
+  .conteudo-painel {
+    max-width: 1280px;
+  }
+
+  .secao-painel {
+    padding: calc(var(--u) * 4);
+  }
+}
+
+@media (max-width: 900px) {
+  .conteudo-painel {
+    padding-top: calc(var(--u) * 3);
+  }
 
   .cabecalho-monitoramento { flex-direction: column; }
   .grade-monitoramento { grid-template-columns: 1fr; }
+  .metricas-rotina { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .conteudo-painel { padding: calc(var(--u) * 3) calc(var(--u) * 2) calc(var(--u) * 6); }
+
+  .topo-painel__marca { font-size: clamp(1.1rem, 4vw, 2rem); }
+  .topo-painel__rotulo { font-size: clamp(0.6rem, 1.8vw, 0.9rem); }
+  .secao-painel { padding: calc(var(--u) * 2.5); }
+  .seletor-modo { gap: calc(var(--u) * 0.75); }
+  .seletor-modo__opcao { width: 100%; text-align: center; }
 
   .tabela-conteudos, .tabela-conteudos thead, .tabela-conteudos tbody,
   .tabela-conteudos th, .tabela-conteudos td, .tabela-conteudos tr {
@@ -398,5 +422,20 @@ html, body {
   .tabela-conteudos td {
     border-bottom: none;
     padding: calc(var(--u) * 0.5) 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .topo-painel__conteudo {
+    gap: calc(var(--u) * 0.8);
+  }
+
+  .topo-painel__divisor {
+    display: none;
+  }
+
+  .botao {
+    width: 100%;
+    text-align: center;
   }
 }
