@@ -299,4 +299,8 @@ def sincronizar(db: Session) -> dict:
 
     houve_erro = any(fonte["erro"] for fonte in totais["fontes"])
     registrar_execucao("scraper", inicio, totais, "Uma ou mais fontes falharam" if houve_erro else None)
+
+    import resumir
+
+    totais["resumo"] = resumir.resumir_pendentes(db, limite=20)
     return totais

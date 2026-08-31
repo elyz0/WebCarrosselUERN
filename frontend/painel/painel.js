@@ -97,8 +97,10 @@ function renderizarRotina(tipo, dados, execucoes) {
   cartao.classList.toggle("cartao-rotina--ok", dados.concluidas >= 2 && dados.falhas === 0);
   cartao.classList.toggle("cartao-rotina--alerta", dados.falhas > 0 || dados.faltantes > 0);
 
-  const campoResultado = cartao.querySelector('[data-campo="tokens"], [data-campo="novos"]');
-  campoResultado.textContent = dados.tokens
+  const campoResultado = tipo === "resumir"
+    ? cartao.querySelector('[data-campo="tokens"]')
+    : cartao.querySelector('[data-campo="novos"]');
+  campoResultado.textContent = tipo === "resumir"
     ? `Entrada ${formatarNumero(dados.tokens.entrada)} · saída ${formatarNumero(dados.tokens.saida)} · total ${formatarNumero(dados.tokens.total)}`
     : `${formatarNumero(execucoes.reduce((total, execucao) => total + (execucao.resultado?.novos || 0), 0))} item(ns) novo(s)`;
 
@@ -201,7 +203,7 @@ elBotaoSincronizar.addEventListener("click", async () => {
 
   try {
     const resultado = await requisicaoApi("/scraper/sincronizar", { method: "POST" });
-    const resultadoResumo = await requisicaoApi("/scraper/resumir?limite=20", { method: "POST" });
+    const resultadoResumo = resultado.resumo || { resumidos: 0, falhas: 0, detalhes: [] };
     const falhas = (resultado.fontes || []).filter((fonte) => fonte.erro);
     const falhaResumo = (resultadoResumo.detalhes || []).find((detalhe) => !detalhe.ok);
     const vias = (resultado.fontes || [])

@@ -63,3 +63,4 @@ class ScraperSincronizarResponse(BaseModel):
     novos: int
     ignorados: int
     fontes: list[ScraperFonteResultado]
+    resumo: Optional[dict] = None
