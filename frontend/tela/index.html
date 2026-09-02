@@ -72,6 +72,37 @@
     Suporte
   </a>
 
+  <button id="btn-fullscreen" onclick="entrarFullscreen()" aria-label="Tela cheia">⛶</button>
+
+  <style>
+    #btn-fullscreen {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      z-index: 9999;
+      background: rgba(0,0,0,0.35);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.4rem 0.7rem;
+      font-size: 1.4rem;
+      cursor: pointer;
+      opacity: 0.4;
+      transition: opacity 0.2s;
+    }
+    #btn-fullscreen:hover { opacity: 1; }
+    :fullscreen #btn-fullscreen,
+    :-webkit-full-screen #btn-fullscreen { display: none; }
+  </style>
+
+  <script>
+    function entrarFullscreen() {
+      const el = document.documentElement;
+      if (el.requestFullscreen) el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    }
+  </script>
+
   <script src="carrossel.js"></script>
 </body>
 </html>
