@@ -35,11 +35,15 @@ function normalizarItem(item) {
   const categoria = tipo === "edital" ? "Edital" : "Notícia";
   const tomNoticia = Number(item.id) % 2 === 0 ? "azure-claro" : "azure";
 
+  const resumo = typeof item.resumo === "string" && item.resumo.trim()
+    ? item.resumo.trim()
+    : "Resumo em processamento. Em breve o texto será resumido pela IA.";
+
   return {
     tipo,
     categoria,
     titulo: item.titulo || "Sem título",
-    resumo: item.resumo || item.texto_original || "Sem resumo disponível.",
+    resumo,
     fonte: item.origem === "manual" ? "Painel de suporte" : "Portal UERN",
     data: formatarData(item.data_publicacao || item.data_expiracao || item.data),
     tom: tipo === "edital" ? "ciano" : tomNoticia,
