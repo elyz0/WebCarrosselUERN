@@ -199,33 +199,20 @@ async function alternarStatus(item, botao) {
 
 elBotaoSincronizar.addEventListener("click", async () => {
   elBotaoSincronizar.disabled = true;
-  elStatusSincronizar.textContent = "Lendo o RSS do portal...";
+  elStatusSincronizar.textContent = "Sincronizando... (pode levar alguns minutos)";
 
   try {
-    const resultado = await requisicaoApi("/scraper/sincronizar", { method: "POST" });
-    const resultadoResumo = resultado.resumo || { resumidos: 0, falhas: 0, detalhes: [] };
-    const falhas = (resultado.fontes || []).filter((fonte) => fonte.erro);
-    const falhaResumo = (resultadoResumo.detalhes || []).find((detalhe) => !detalhe.ok);
-    const vias = (resultado.fontes || [])
-      .filter((fonte) => fonte.via)
-      .map((fonte) => `${fonte.nome} via ${fonte.via}`)
-      .join("; ");
+    await requisicaoApi("/scraper/sincronizar", { method: "POST" });
+    elStatusSincronizar.textContent = "Sincronização iniciada. Atualizando painel em 2 min...";
 
-    elStatusSincronizar.textContent = [
-      `${resultado.novos} novo(s)`,
-      `${resultado.ignorados} já existia(m)`,
-      `${resultadoResumo.resumidos} resumo(s) gerado(s)`,
-      resultadoResumo.falhas ? `${resultadoResumo.falhas} falha(s) no resumo` : "",
-      falhaResumo?.erro ? `erro IA: ${falhaResumo.erro}` : "",
-      vias,
-      falhas.length ? `falha: ${falhas.map((fonte) => fonte.nome).join(", ")}` : "",
-    ].filter(Boolean).join(" · ");
-
-    await carregarPainel();
+    setTimeout(async () => {
+      await carregarPainel();
+      elStatusSincronizar.textContent = "Painel atualizado.";
+      elBotaoSincronizar.disabled = false;
+    }, 120000);
   } catch (erro) {
     elStatusSincronizar.textContent = "";
     mostrarErro(erro);
-  } finally {
     elBotaoSincronizar.disabled = false;
   }
 });

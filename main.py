@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from fastapi import FastAPI, Depends, HTTPException 
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from database import Base, engine, get_db
@@ -157,9 +157,10 @@ def atualizar_config(dados: schemas.ConfigTVUpdate, db: Session = Depends(get_db
 
 
 # Importa notícias/editais do RSS do portal (sem duplicar url_origem).
-@app.post("/scraper/sincronizar", response_model=schemas.ScraperSincronizarResponse)
-def sincronizar_portal(db: Session = Depends(get_db)):
-    return scraper.sincronizar(db) 
+@app.post("/scraper/sincronizar", status_code=202)
+def sincronizar_portal(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    background_tasks.add_task(scraper.sincronizar, db)
+    return {"status": "iniciado"}
 
 
 # Gera o resumo (via IA) dos conteúdos que ainda não têm resumo
