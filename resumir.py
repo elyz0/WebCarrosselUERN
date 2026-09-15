@@ -18,7 +18,7 @@ load_dotenv()
 # No Linux/Mac:  export GEMINI_API_KEY="sua_chave_aqui"
 # Pegue a chave em: https://aistudio.google.com/apikey
 GEMINI_API_KEY = "".join(os.environ.get("GEMINI_API_KEY", "").split())
-GEMINI_MODEL = "gemini-2.5-flash-lite"
+GEMINI_MODEL = "gemini-3.5-flash-lite"
 GEMINI_URL = (
     f"https://generativelanguage.googleapis.com/v1beta/models/"
     f"{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
