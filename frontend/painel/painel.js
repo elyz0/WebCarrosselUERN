@@ -4,7 +4,7 @@
 // isso é o Passo 4 (trocar por fetch() de verdade
 // pro GET/POST/PUT/DELETE que o main.py já expõe).
 // ============================================
-const API_BASE = window.API_BASE || "http://localhost:8000";
+const API_BASE = window.API_BASE || "";
 
 let itens = [];
 
