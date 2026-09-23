@@ -7,6 +7,29 @@ const elCardAnterior = document.querySelector(".card-conteudo--anterior");
 const elCardAtivo = document.querySelector(".card-conteudo--ativo");
 const elCardProximo = document.querySelector(".card-conteudo--proximo");
 const elBarraPreenchimento = document.querySelector(".barra-progresso__preenchimento");
+ 
+const elQrContainer = document.getElementById("qrcode-container");
+let qrInstance = null;
+
+function atualizarQrCode(url) {
+  if (!elQrContainer) return;
+
+  if (!url) {
+    elQrContainer.style.display = "none";
+    return;
+  }
+
+  elQrContainer.style.display = "block";
+  elQrContainer.innerHTML = "";
+  qrInstance = new QRCode(elQrContainer, {
+    text: url,
+    width: 96,
+    height: 96,
+    colorDark: "#353C7C",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.M,
+  });
+} 
 
 if (elBarraPreenchimento) {
   elBarraPreenchimento.style.setProperty("--duracao-slide", `${DURACAO_SLIDE_MS / 1000}s`);
@@ -46,7 +69,8 @@ function normalizarItem(item) {
     resumo,
     fonte: item.origem === "manual" ? "Painel de suporte" : "Portal UERN",
     data: formatarData(item.data_publicacao || item.data_expiracao || item.data),
-    tom: tipo === "edital" ? "ciano" : tomNoticia,
+    tom: tipo === "edital" ? "ciano" : tomNoticia, 
+    url: item.url_origem || null,
   };
 }
 
@@ -133,7 +157,8 @@ function atualizarCarrossel() {
 
   window.setTimeout(() => {
     preencherCardPeek(elCardAnterior, itemAnterior);
-    preencherCardAtivo(elCardAtivo, itemAtivo);
+    preencherCardAtivo(elCardAtivo, itemAtivo); 
+    atualizarQrCode(itemAtivo.url || null);
     preencherCardPeek(elCardProximo, itemProximo);
 
     requestAnimationFrame(() => {

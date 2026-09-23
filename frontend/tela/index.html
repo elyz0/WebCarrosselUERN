@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Carrossel UERN — Notícias e Editais</title>
+  <title>UERN — Notícias e Editais</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,15 +38,19 @@
       <div class="card-conteudo__fantasma">CARREGANDO</div>
 
       <div class="card-conteudo__miolo">
+        
         <span class="card-conteudo__categoria">Carregando</span>
+        
 
         <h1 class="card-conteudo__titulo">
           Carregando conteúdos...
         </h1>
 
+        
         <p class="card-conteudo__resumo">
           Aguarde enquanto os conteúdos ativos são carregados.
         </p>
+        
 
         <footer class="card-conteudo__rodape">
           <span class="card-conteudo__fonte">WebCarrossel</span>
@@ -102,6 +106,21 @@
       else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
     }
   </script>
+ 
+  
+  <!-- QR Code da notícia -->
+<div id="qrcode-container" style="
+  position: fixed;
+  bottom: 4.5rem;
+  right: 1.2rem;
+  background: #fff;
+  padding: 6px;
+  border-radius: 8px;
+  z-index: 999;
+  display: none;
+"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script> 
 
   <script src="carrossel.js"></script>
 </body>
