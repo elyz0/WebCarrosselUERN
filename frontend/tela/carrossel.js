@@ -1,4 +1,4 @@
-const API_BASE = "";
+const API_BASE = "http://127.0.0.1:8000";
 const DURACAO_SLIDE_MS = 10000;
 const DURACAO_TRANSICAO_MS = 350;
 
@@ -121,7 +121,6 @@ function preencherCardAtivo(card, item) {
 
   card.dataset.tom = item.tom;
   card.querySelector(".card-conteudo__fantasma").textContent = item.categoria.toUpperCase();
-  card.querySelector(".card-conteudo__categoria").textContent = item.categoria;
   card.querySelector(".card-conteudo__titulo").textContent = item.titulo;
   card.querySelector(".card-conteudo__resumo").textContent = item.resumo;
   card.querySelector(".card-conteudo__fonte").textContent = item.fonte;

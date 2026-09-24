@@ -39,24 +39,25 @@
 
       <div class="card-conteudo__miolo">
         
-        <span class="card-conteudo__categoria">Carregando</span>
-        
-
         <h1 class="card-conteudo__titulo">
           Carregando conteúdos...
         </h1>
 
         
-        <p class="card-conteudo__resumo">
-          Aguarde enquanto os conteúdos ativos são carregados.
-        </p>
-        
+        <div class="card-conteudo__detalhes">
+          <div class="card-conteudo__texto">
+            <p class="card-conteudo__resumo">
+              Aguarde enquanto os conteúdos ativos são carregados.
+            </p>
 
-        <footer class="card-conteudo__rodape">
-          <span class="card-conteudo__fonte">WebCarrossel</span>
-          <span class="card-conteudo__ponto" aria-hidden="true">•</span>
-          <span class="card-conteudo__data"></span>
-        </footer>
+            <footer class="card-conteudo__rodape">
+              <span class="card-conteudo__fonte">WebCarrossel</span>
+              <span class="card-conteudo__ponto" aria-hidden="true">•</span>
+              <span class="card-conteudo__data"></span>
+            </footer>
+          </div>
+          <div id="qrcode-container" aria-label="QR code para acessar a notícia"></div>
+        </div>
       </div>
     </article>
 
@@ -108,18 +109,6 @@
   </script>
  
   
-  <!-- QR Code da notícia -->
-<div id="qrcode-container" style="
-  position: fixed;
-  bottom: 4.5rem;
-  right: 1.2rem;
-  background: #fff;
-  padding: 6px;
-  border-radius: 8px;
-  z-index: 999;
-  display: none;
-"></div>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script> 
 
   <script src="carrossel.js"></script>
